@@ -4,6 +4,13 @@ AI-powered SEO audit tool + privacy policy generator. First product built by the
 
 **Domain:** https://auditmypage.com
 **Repository:** https://github.com/RoiGit-AI/auditmypage
+**Local path:** ~/auditmypage (workspace: ~/.openclaw/workspace/auditmypage)
+
+## Important: Working Directory
+
+This project lives in the OpenClaw workspace at `~/.openclaw/workspace/auditmypage/`.
+
+**NEVER clone the repo to /tmp/ or any other location.** Always work directly in the workspace copy. All file reads, writes, and git operations must use the workspace path. The workspace copy is already cloned and up to date — just `git pull` if you need the latest.
 
 ## Tech Stack
 
