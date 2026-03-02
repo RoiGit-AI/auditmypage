@@ -2,9 +2,9 @@ import { PolicyWizard } from "@/components/PolicyWizard";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AI Privacy Policy Generator — $19, No Subscription | AuditMyPage",
+  title: "AI Privacy Policy Generator — Free During Launch | AuditMyPage",
   description:
-    "Generate a custom AI-written privacy policy in 2 minutes. Covers GDPR, CCPA, and more. $19 one-time — no subscription, no lock-in. 10x cheaper than Termly.",
+    "Generate a custom AI-written privacy policy in 2 minutes. Covers GDPR, CCPA, and more. Free during launch (normally $19). No subscription, no lock-in.",
 };
 
 export default function PrivacyPolicyGeneratorPage() {
@@ -17,7 +17,9 @@ export default function PrivacyPolicyGeneratorPage() {
           template fill-in-the-blank.
         </p>
         <p className="mt-1 text-sm text-gray-500">
-          $19 one-time — no subscription. Covers GDPR, CCPA, and more.
+          <span className="line-through">$19</span>{" "}
+          <span className="text-green-400 font-medium">Free during launch</span>
+          {" "}— no subscription. Covers GDPR, CCPA, and more.
         </p>
       </div>
       <PolicyWizard />

@@ -54,9 +54,18 @@ export async function generatePolicy(formData: PolicyFormData): Promise<{ markdo
   return { markdown, html };
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export function generatePreview(formData: PolicyFormData): string {
-  const name = formData.businessName || "Your Company";
-  const url = formData.websiteUrl || "your-website.com";
+  const name = escapeHtml(formData.businessName || "Your Company");
+  const url = escapeHtml(formData.websiteUrl || "your-website.com");
 
   return `# Privacy Policy for ${name}
 
@@ -70,7 +79,7 @@ We are committed to protecting your privacy and handling your data with transpar
 
 ---
 
-*This is a preview. Purchase the full privacy policy to see all sections including data collection details, third-party disclosures, ${formData.servesEu ? "GDPR compliance, " : ""}${formData.servesCalifornia ? "CCPA/CPRA rights, " : ""}user rights, and more.*`;
+*This is a preview. Claim the full privacy policy (free during launch) to see all sections including data collection details, third-party disclosures, ${formData.servesEu ? "GDPR compliance, " : ""}${formData.servesCalifornia ? "CCPA/CPRA rights, " : ""}user rights, and more.*`;
 }
 
 function buildPrompt(formData: PolicyFormData): string {

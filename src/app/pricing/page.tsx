@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Pricing — AuditMyPage",
   description:
-    "Free SEO audit tool. AI privacy policy generator for $19 one-time. No subscriptions, no lock-in.",
+    "Free SEO audit tool. AI privacy policy generator — free during launch (normally $19). No subscriptions, no lock-in.",
 };
 
 export default function PricingPage() {
@@ -47,13 +47,13 @@ export default function PricingPage() {
         </div>
 
         {/* Privacy Policy */}
-        <div className="bg-gray-900 border border-blue-800 rounded-xl p-6 relative">
-          <div className="absolute -top-3 right-4 px-2 py-0.5 bg-blue-600 text-xs font-medium rounded-full">
-            Revenue goal
+        <div className="bg-gray-900 border border-green-800 rounded-xl p-6 relative">
+          <div className="absolute -top-3 right-4 px-2 py-0.5 bg-green-600 text-xs font-medium rounded-full">
+            Launch promotion
           </div>
           <h2 className="text-xl font-semibold">Privacy Policy</h2>
           <p className="text-3xl font-bold mt-2">
-            $19<span className="text-sm font-normal text-gray-400"> one-time</span>
+            Free <span className="text-sm font-normal text-gray-500 line-through">$19</span>
           </p>
           <ul className="mt-6 space-y-3 text-sm text-gray-300">
             <li className="flex gap-2">
@@ -74,9 +74,9 @@ export default function PricingPage() {
           </ul>
           <a
             href="/privacy-policy-generator"
-            className="block mt-6 text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm font-medium"
+            className="block mt-6 text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors text-sm font-medium"
           >
-            Generate now
+            Generate now — Free
           </a>
         </div>
       </div>
@@ -100,7 +100,7 @@ export default function PricingPage() {
               <tr className="border-b border-gray-800/50">
                 <td className="py-3 pr-4">Price</td>
                 <td className="text-center py-3 px-4 text-green-400 font-medium">
-                  $19 once
+                  <span className="line-through text-gray-500">$19</span> Free
                 </td>
                 <td className="text-center py-3 px-4">$168-240/yr</td>
                 <td className="text-center py-3 px-4">$56-140</td>

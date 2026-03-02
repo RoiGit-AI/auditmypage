@@ -92,8 +92,8 @@ export default function Home() {
           <div className="text-3xl mb-3">📜</div>
           <h3 className="text-lg font-semibold">Privacy Policy</h3>
           <p className="mt-2 text-sm text-gray-400">
-            AI-generated, customized privacy policy for $19. Covers GDPR, CCPA,
-            and more. No subscription.
+            AI-generated, customized privacy policy. Free during launch
+            (normally $19). Covers GDPR, CCPA, and more.
           </p>
         </div>
       </section>
