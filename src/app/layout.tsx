@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import StructuredData from "@/components/StructuredData";
 
 export const metadata: Metadata = {
   title: "AuditMyPage — Audit your site before you ship",
@@ -28,6 +29,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <StructuredData />
+      </head>
       <body className="bg-gray-950 text-gray-100 min-h-screen antialiased">
         <nav className="border-b border-gray-800">
           <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -43,6 +47,12 @@ export default function RootLayout({
                 className="hover:text-white transition-colors"
               >
                 Privacy Policy
+              </a>
+              <a
+                href="/blog"
+                className="hover:text-white transition-colors"
+              >
+                Blog
               </a>
               <a
                 href="/pricing"
