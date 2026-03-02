@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -13,6 +13,8 @@ interface PolicyData {
   businessName: string;
 }
 
+type StreamState = "idle" | "streaming" | "complete" | "error";
+
 export default function PolicyPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -21,9 +23,14 @@ export default function PolicyPage() {
 
   const [data, setData] = useState<PolicyData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [claimLoading, setClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState("");
   const [email, setEmail] = useState("");
+
+  // Streaming state
+  const [streamState, setStreamState] = useState<StreamState>("idle");
+  const [streamedMarkdown, setStreamedMarkdown] = useState("");
+  const streamedRef = useRef("");
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch(`/api/policy/${id}`)
@@ -33,25 +40,84 @@ export default function PolicyPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  // Auto-scroll during streaming
+  useEffect(() => {
+    if (streamState === "streaming") {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [streamedMarkdown, streamState]);
+
   async function handleClaim() {
-    setClaimLoading(true);
+    setStreamState("streaming");
+    setStreamedMarkdown("");
+    streamedRef.current = "";
     setClaimError("");
+
     try {
       const res = await fetch("/api/claim-policy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ policyId: id, email: email || undefined }),
       });
-      const result = await res.json();
-      if (result.success) {
-        window.location.href = `/privacy-policy/${id}?success=true`;
-      } else {
-        setClaimError(result.error || "Something went wrong. Please try again.");
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Request failed" }));
+        setClaimError(err.error || "Something went wrong. Please try again.");
+        setStreamState("error");
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) {
+        setClaimError("Streaming not supported.");
+        setStreamState("error");
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const event = JSON.parse(line);
+            if (event.type === "delta") {
+              streamedRef.current += event.text;
+              setStreamedMarkdown(streamedRef.current);
+            } else if (event.type === "done") {
+              // Re-fetch server-saved data for downloads
+              const freshRes = await fetch(`/api/policy/${id}`);
+              const freshData = await freshRes.json();
+              setData(freshData);
+              setStreamState("complete");
+              return;
+            } else if (event.type === "error") {
+              setClaimError(event.message || "Generation failed.");
+              setStreamState("error");
+              return;
+            }
+          } catch {
+            // Skip malformed lines
+          }
+        }
+      }
+
+      // If we exit the loop without a done event, treat as error
+      if (streamState !== "complete") {
+        setClaimError("Stream ended unexpectedly.");
+        setStreamState("error");
       }
     } catch {
       setClaimError("Network error. Please try again.");
-    } finally {
-      setClaimLoading(false);
+      setStreamState("error");
     }
   }
 
@@ -81,11 +147,72 @@ export default function PolicyPage() {
     );
   }
 
+  // Streaming view — policy being generated live
+  if (streamState === "streaming") {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">
+            Privacy Policy — {data.businessName}
+          </h1>
+          <div className="flex items-center gap-2 mt-2 text-sm text-blue-400">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+            </span>
+            Generating your policy — this takes ~15-30 seconds
+          </div>
+        </div>
+
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 prose prose-invert max-w-none">
+          <div
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(simpleMarkdownToHtml(streamedMarkdown)),
+            }}
+          />
+          <span className="inline-block w-2 h-5 bg-blue-500 animate-pulse ml-0.5 align-text-bottom" />
+          <div ref={bottomRef} />
+        </div>
+      </div>
+    );
+  }
+
+  // Error during streaming
+  if (streamState === "error") {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-2">
+          Privacy Policy — {data.businessName}
+        </h1>
+
+        <div className="mb-6 p-4 bg-red-950/50 border border-red-800 rounded-lg">
+          <p className="text-red-300 text-sm">{claimError}</p>
+          <button
+            onClick={handleClaim}
+            className="mt-3 px-4 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors"
+          >
+            Try again
+          </button>
+        </div>
+
+        {streamedMarkdown && (
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 prose prose-invert max-w-none opacity-50">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(simpleMarkdownToHtml(streamedMarkdown)),
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Paid — show full policy with download options
   if (data.paid && data.markdown) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {isSuccess && (
+        {(isSuccess || streamState === "complete") && (
           <div className="mb-6 p-4 bg-green-950/50 border border-green-800 rounded-lg text-green-300">
             Your privacy policy is ready below.
           </div>
@@ -180,10 +307,9 @@ export default function PolicyPage() {
           />
           <button
             onClick={handleClaim}
-            disabled={claimLoading}
-            className="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-500 disabled:opacity-50 transition-colors whitespace-nowrap"
+            className="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-500 transition-colors whitespace-nowrap"
           >
-            {claimLoading ? "Generating..." : "Get it free"}
+            Get it free
           </button>
         </div>
         {claimError && (

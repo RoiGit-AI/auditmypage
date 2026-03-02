@@ -140,7 +140,36 @@ ${jurisdictions.join(", ") || "General (no specific jurisdiction selected)"}
 Output only the Markdown content, nothing else.`;
 }
 
-function markdownToHtml(md: string): string {
+export function generatePolicyStream(formData: PolicyFormData): ReadableStream<string> {
+  const prompt = buildPrompt(formData);
+
+  return new ReadableStream<string>({
+    async start(controller) {
+      try {
+        const stream = getClient().messages.stream({
+          model: "claude-sonnet-4-6",
+          max_tokens: 4000,
+          messages: [{ role: "user", content: prompt }],
+        });
+
+        for await (const event of stream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            controller.enqueue(event.delta.text);
+          }
+        }
+
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+  });
+}
+
+export function markdownToHtml(md: string): string {
   // Basic markdown to HTML conversion for the policy document
   let html = md
     .replace(/^### (.+)$/gm, "<h3>$1</h3>")
