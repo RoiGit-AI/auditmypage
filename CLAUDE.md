@@ -26,6 +26,7 @@ src/
 │   ├── api/
 │   │   ├── audit/route.ts          # POST — run SEO audit
 │   │   ├── checkout/route.ts       # POST — create Stripe session
+│   │   ├── claim-policy/route.ts    # POST — claim free policy (streams NDJSON)
 │   │   ├── generate-policy/route.ts # POST — generate policy preview
 │   │   ├── policy/[id]/route.ts    # GET — fetch policy data
 │   │   └── webhook/route.ts        # POST — Stripe webhook handler
@@ -87,3 +88,4 @@ npm start        # Start production server
 - **Async getDb():** Database initialization is async (WASM loading), all consumers await it
 - **Server components for SEO:** Audit result pages are server-rendered for shareable URLs
 - **Instrumentation file:** Patches Node 25's broken `localStorage` global on the server
+- **Streaming policy generation:** `claim-policy` route uses `generatePolicyStream()` with Anthropic SDK's `.messages.stream()` — returns NDJSON (`text/event-stream`) with `delta`, `done`, and `error` events. Frontend consumes via `getReader()` and renders tokens progressively. Non-streaming `generatePolicy()` still used by the Stripe webhook path.

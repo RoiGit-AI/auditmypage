@@ -5,6 +5,7 @@
 | Feature | Date | Notes |
 |---------|------|-------|
 | MVP — SEO Audit + Privacy Policy Generator | 2026-03-01 | Full build with 16+ SEO checks, 5-step policy wizard, Stripe checkout, dark theme |
+| Streaming policy generation | 2026-03-02 | Real-time streaming via NDJSON — tokens pipe to browser as Claude generates, pulsing cursor, ~2s to first token |
 
 ## Pending
 
